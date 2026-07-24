@@ -18,7 +18,7 @@ dependencies = [
     "langgraph>=1.2.9",      # graph framework for the propose->evaluate->correct loop
     "openai>=2.48.0",        # OpenAI API — the specialist agents' reasoning (default)
     "anthropic>=0.119.0",    # Claude API — alternative agent backend (swappable)
-    "streamlit>=1.60.0",
+    "streamlit>=1.60.0",     # Phase 3 demo UI (make demo)
 ]
 
 [build-system]
@@ -27,3 +27,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

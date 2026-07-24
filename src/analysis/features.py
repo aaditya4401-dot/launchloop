@@ -37,8 +37,16 @@ TRACES_GLOB = "data/raw/flight_*.parquet"
 LABELS_PATH = "data/labels.parquet"
 
 
-def build_feature_table(window: float = WINDOW) -> pl.DataFrame:
-    """Return one row per flight: early features + apogee target + weak label."""
+def build_feature_table(
+    window: float = WINDOW,
+    traces_glob: str = TRACES_GLOB,
+    labels_path: str = LABELS_PATH,
+) -> pl.DataFrame:
+    """Return one row per flight: early features + apogee target + weak label.
+
+    traces_glob / labels_path default to the real Phase 1 output; tests inject
+    a tiny fixture instead of depending on the full 1,000-flight dataset.
+    """
     con = duckdb.connect()
     query = rf"""
         SELECT
@@ -47,7 +55,7 @@ def build_feature_table(window: float = WINDOW) -> pl.DataFrame:
             MAX(vertical_accel)                 AS az_max,
             AVG(vertical_accel)                 AS az_mean,
             arg_max(altitude_agl, time)         AS alt_end
-        FROM read_parquet('{TRACES_GLOB}', filename = true)
+        FROM read_parquet('{traces_glob}', filename = true)
         WHERE time <= {window}
         GROUP BY 1
     """
@@ -55,7 +63,7 @@ def build_feature_table(window: float = WINDOW) -> pl.DataFrame:
     feats = pl.DataFrame(con.execute(query).fetchnumpy())
     con.close()
 
-    labels = pl.read_parquet(LABELS_PATH).select(
+    labels = pl.read_parquet(labels_path).select(
         "flight_id", "apogee_agl", "is_weak_motor"
     )
     return feats.join(labels, on="flight_id", how="inner").sort("flight_id")
