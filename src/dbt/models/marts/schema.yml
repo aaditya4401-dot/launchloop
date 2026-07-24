@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: flight_summary
+    description: "One row per flight: apogee, max speed, is_weak_motor label, and input knobs. The Phase 1 deliverable."
+    columns:
+      - name: flight_id
+        description: "Unique flight identifier (1..N)."
+        data_tests:
+          - unique
+          - not_null
+      - name: apogee_m
+        description: "Apogee above ground (m), re-derived from the traces."
+        data_tests:
+          - not_null
+      - name: is_weak_motor
+        description: "True for the ~10% deliberately weakened flights (Phase 2 answer key)."
+        data_tests:
+          - not_null

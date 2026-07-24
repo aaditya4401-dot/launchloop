@@ -1,0 +1,242 @@
+{
+  "mission": {
+    "target_apogee_m": 3000.0,
+    "ceiling_m": 3200.0,
+    "stability_min_cal": 1.5,
+    "stability_max_cal": 2.5,
+    "rail_exit_min_ms": 20.0,
+    "target_tolerance_m": 150.0,
+    "wind_u": 6.0,
+    "wind_v": 0.0,
+    "max_iterations": 8
+  },
+  "events": [
+    {
+      "type": "iteration",
+      "iteration": 1,
+      "config": {
+        "motor": "M2310",
+        "impulse": 9000.0,
+        "ballast_kg": 0.0,
+        "rail_deg": 85.0,
+        "chute_cd_s": 10.0
+      },
+      "metrics": {
+        "apogee_m": 5022.16830322269,
+        "stability_cal": 2.194175085818563,
+        "rail_exit_ms": 38.344225803691835,
+        "dispersion_m": 452.2987017415391
+      },
+      "hard_ok": false,
+      "violations": [
+        "apogee 5022 m exceeds waiver ceiling 3200 m"
+      ],
+      "apogee_gap_m": 2022.1683032226902,
+      "opinions": [
+        {
+          "role": "performance",
+          "satisfied": true,
+          "assessment": "Apogee 5022 m is at/above the target.",
+          "suggestion": "hold or trim slightly"
+        },
+        {
+          "role": "safety",
+          "satisfied": false,
+          "assessment": "Hard safety/ceiling limits violated: apogee 5022 m exceeds waiver ceiling 3200 m",
+          "suggestion": "reduce apogee / fix stability / raise rail-exit speed"
+        },
+        {
+          "role": "recovery",
+          "satisfied": false,
+          "assessment": "Landing dispersion 452 m is large.",
+          "suggestion": "shrink the parachute to cut drift"
+        }
+      ],
+      "disagreement": true,
+      "prescreen": [
+        {
+          "motor": "M1540",
+          "apogee_m": 3009.8156489295243,
+          "in_envelope": true
+        },
+        {
+          "motor": "M1920",
+          "apogee_m": 3948.7973372787064,
+          "in_envelope": true
+        },
+        {
+          "motor": "L900",
+          "apogee_m": 1295.9220874703524,
+          "in_envelope": true
+        },
+        {
+          "motor": "M2310",
+          "apogee_m": 4973.067977807398,
+          "in_envelope": false
+        }
+      ],
+      "decision": {
+        "kind": "propose",
+        "rationale": "Apogee 5022 m over ceiling 3200 m \u2192 downsize motor M2310\u2192M1920.",
+        "change": "swap motor M2310 \u2192 M1920"
+      }
+    },
+    {
+      "type": "iteration",
+      "iteration": 2,
+      "config": {
+        "motor": "M1920",
+        "impulse": 7500.0,
+        "ballast_kg": 0.0,
+        "rail_deg": 85.0,
+        "chute_cd_s": 10.0
+      },
+      "metrics": {
+        "apogee_m": 4028.1399103331623,
+        "stability_cal": 2.194175085818563,
+        "rail_exit_ms": 34.789073023844914,
+        "dispersion_m": 385.08344666915275
+      },
+      "hard_ok": false,
+      "violations": [
+        "apogee 4028 m exceeds waiver ceiling 3200 m"
+      ],
+      "apogee_gap_m": 1028.1399103331623,
+      "opinions": [
+        {
+          "role": "performance",
+          "satisfied": true,
+          "assessment": "Apogee 4028 m is at/above the target.",
+          "suggestion": "hold or trim slightly"
+        },
+        {
+          "role": "safety",
+          "satisfied": false,
+          "assessment": "Hard safety/ceiling limits violated: apogee 4028 m exceeds waiver ceiling 3200 m",
+          "suggestion": "reduce apogee / fix stability / raise rail-exit speed"
+        },
+        {
+          "role": "recovery",
+          "satisfied": true,
+          "assessment": "Landing dispersion 385 m acceptable.",
+          "suggestion": "hold"
+        }
+      ],
+      "disagreement": true,
+      "prescreen": [
+        {
+          "motor": "M1540",
+          "apogee_m": 3009.8156489295243,
+          "in_envelope": true
+        },
+        {
+          "motor": "M1920",
+          "apogee_m": 3948.7973372787064,
+          "in_envelope": true
+        },
+        {
+          "motor": "L900",
+          "apogee_m": 1295.9220874703524,
+          "in_envelope": true
+        },
+        {
+          "motor": "M2310",
+          "apogee_m": 4973.067977807398,
+          "in_envelope": false
+        }
+      ],
+      "decision": {
+        "kind": "propose",
+        "rationale": "Apogee 4028 m over ceiling 3200 m \u2192 downsize motor M1920\u2192M1540.",
+        "change": "swap motor M1920 \u2192 M1540"
+      }
+    },
+    {
+      "type": "iteration",
+      "iteration": 3,
+      "config": {
+        "motor": "M1540",
+        "impulse": 6000.0,
+        "ballast_kg": 0.0,
+        "rail_deg": 85.0,
+        "chute_cd_s": 10.0
+      },
+      "metrics": {
+        "apogee_m": 2998.7854496204627,
+        "stability_cal": 2.194175085818563,
+        "rail_exit_ms": 30.825632525918177,
+        "dispersion_m": 315.05913275449115
+      },
+      "hard_ok": true,
+      "violations": [],
+      "apogee_gap_m": -1.214550379537286,
+      "opinions": [
+        {
+          "role": "performance",
+          "satisfied": true,
+          "assessment": "Apogee 2999 m is at/above the target.",
+          "suggestion": "hold or trim slightly"
+        },
+        {
+          "role": "safety",
+          "satisfied": true,
+          "assessment": "Ceiling, stability (2.19 cal) and rail-exit (30.8 m/s) all within limits.",
+          "suggestion": "hold"
+        },
+        {
+          "role": "recovery",
+          "satisfied": true,
+          "assessment": "Landing dispersion 315 m acceptable.",
+          "suggestion": "hold"
+        }
+      ],
+      "disagreement": false,
+      "prescreen": [
+        {
+          "motor": "M1540",
+          "apogee_m": 3009.8156489295243,
+          "in_envelope": true
+        },
+        {
+          "motor": "M1920",
+          "apogee_m": 3948.7973372787064,
+          "in_envelope": true
+        },
+        {
+          "motor": "L900",
+          "apogee_m": 1295.9220874703524,
+          "in_envelope": true
+        },
+        {
+          "motor": "M2310",
+          "apogee_m": 4973.067977807398,
+          "in_envelope": false
+        }
+      ],
+      "decision": {
+        "kind": "go",
+        "rationale": "All hard constraints satisfied and apogee 2999 m is within 150 m of the 3000 m target."
+      }
+    },
+    {
+      "type": "verdict",
+      "verdict": "go",
+      "rationale": "All hard constraints satisfied and apogee 2999 m is within 150 m of the 3000 m target.",
+      "final_config": {
+        "motor": "M1540",
+        "impulse": 6000.0,
+        "ballast_kg": 0.0,
+        "rail_deg": 85.0,
+        "chute_cd_s": 10.0
+      },
+      "final_metrics": {
+        "apogee_m": 2998.7854496204627,
+        "stability_cal": 2.194175085818563,
+        "rail_exit_ms": 30.825632525918177,
+        "dispersion_m": 315.05913275449115
+      },
+      "iterations": 3,
+      "max_iterations": 8
+    }
+  ]
+}

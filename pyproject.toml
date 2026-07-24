@@ -1,0 +1,29 @@
+[project]
+name = "rocketry-project"
+version = "0.1.0"
+description = "Rocket flight planner & analytics platform: simulation, ML, and multi-agent AI over simulated rocketry data."
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    # --- Phase 1: data engineering ---
+    "rocketpy>=1.12,<1.13",  # rocket flight simulator — our data source (1.13 not yet on PyPI; latest is 1.12.1)
+    "duckdb>=1.1",           # in-process SQL database that reads our Parquet files
+    "polars>=1.0",           # fast dataframe lib; builds & writes the per-flight Parquet
+    "dbt-core>=1.8",         # organizes SQL transforms into clean, documented steps
+    "dbt-duckdb>=1.8",       # the dbt adapter that lets dbt run against DuckDB
+    "typer>=0.12",           # turns our scripts into one-word CLI commands
+    # --- Phase 2: data science ---
+    "scikit-learn>=1.5",     # ML models: apogee regression + anomaly detection
+    "matplotlib>=3.9",       # charts saved to notebooks/ for the README
+    # --- Phase 3: multi-agent AI ---
+    "langgraph>=1.2.9",      # graph framework for the propose->evaluate->correct loop
+    "openai>=2.48.0",        # OpenAI API — the specialist agents' reasoning (default)
+    "anthropic>=0.119.0",    # Claude API — alternative agent backend (swappable)
+    "streamlit>=1.60.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

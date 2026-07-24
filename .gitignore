@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# uv
+.uv/
+
+# Generated data (rebuildable with `make simulate` / `make data`)
+data/raw/*.parquet
+data/labels.parquet
+data/warehouse.duckdb
+data/dispersion/
+
+# dbt build artifacts + local telemetry
+src/dbt/target/
+src/dbt/logs/
+src/dbt/dbt_packages/
+src/dbt/.user.yml
+
+# OS / editor
+.DS_Store

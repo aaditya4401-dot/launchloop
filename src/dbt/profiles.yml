@@ -1,0 +1,10 @@
+# Tells dbt how to connect. We use the dbt-duckdb adapter pointed at the same
+# warehouse file the pipeline loader created. The path is relative to the
+# directory dbt is run from — the Makefile always runs it from the repo root.
+rocketry:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: data/warehouse.duckdb
+      threads: 4

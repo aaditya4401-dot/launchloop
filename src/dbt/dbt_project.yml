@@ -1,0 +1,16 @@
+name: "rocketry"
+version: "1.0.0"
+profile: "rocketry"
+
+model-paths: ["models"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+# Staging models are lightweight views; the marts are materialized as tables
+# so the final summary is a real, queryable table in the warehouse.
+models:
+  rocketry:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

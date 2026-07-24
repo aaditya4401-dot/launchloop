@@ -1,0 +1,13 @@
+version: 2
+
+# The two raw tables the pipeline loader (src/pipeline/load.py) creates in
+# DuckDB. Declaring them as sources lets the staging models reference them with
+# {{ source(...) }} and gives dbt a clean lineage root.
+sources:
+  - name: raw
+    schema: main
+    tables:
+      - name: raw_traces
+        description: "Every flight's time-series, unioned; one row per timestamp."
+      - name: raw_labels
+        description: "One row per flight: randomization knobs + is_weak_motor + outcomes."
