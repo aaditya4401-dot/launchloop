@@ -13,6 +13,7 @@ help:
 	@echo "make dispersion  RocketPy native Monte Carlo dispersion study (standalone)"
 	@echo "make models      Phase 2: train apogee prediction + anomaly detection, save charts"
 	@echo "make design      Phase 3: closed-loop flight designer (BRAIN=openai default; also claude or stub-offline)"
+	@echo "                 override the mission: TARGET=/CEILING=/WIND=/MAX_ITERATIONS="
 	@echo "make demo        Streamlit UI for the design loop (replay mode needs no key)"
 	@echo "make record      Re-record the demo's replay run to JSON (offline stub)"
 	@echo "make all         Full rebuild from scratch: simulate + data"
@@ -55,8 +56,14 @@ models:
 # --- Phase 3: multi-agent AI ---
 # Closed-loop flight designer. BRAIN=openai (default) needs OPENAI_API_KEY;
 # BRAIN=claude needs ANTHROPIC_API_KEY; BRAIN=stub runs deterministic + offline.
+# Override the mission with TARGET=/CEILING=/WIND=/MAX_ITERATIONS= (all optional;
+# unset ones keep the default mission's value).
 design:
-	uv run python -m src.agents.designer --brain $(BRAIN)
+	uv run python -m src.agents.designer --brain $(BRAIN) \
+		$(if $(TARGET),--target $(TARGET)) \
+		$(if $(CEILING),--ceiling $(CEILING)) \
+		$(if $(WIND),--wind $(WIND)) \
+		$(if $(MAX_ITERATIONS),--max-iterations $(MAX_ITERATIONS))
 
 # Streamlit demo UI. PYTHONPATH=. so `import src.*` resolves under `streamlit run`.
 demo:

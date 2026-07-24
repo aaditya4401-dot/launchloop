@@ -209,9 +209,9 @@ the multi-agent structure load-bearing rather than decorative.
 - A markdown report still gets written — but now it's a *byproduct* documenting what the
   system did and why, not the deliverable itself.
 
-**Done when:** `make design MISSION=...` takes a mission, runs real RocketPy simulations in
-a loop, and either prints a verified flyable configuration or a justified no-go — and you
-can watch the apogee move toward the target across iterations.
+**Done when:** `make design TARGET=... CEILING=... WIND=...` takes a mission, runs real
+RocketPy simulations in a loop, and either prints a verified flyable configuration or a
+justified no-go — and you can watch the apogee move toward the target across iterations.
 
 **Honesty note (keep this in mind):** even this could be done with one agent plus an
 optimizer. The multi-agent structure is load-bearing *only because* the specialists hold

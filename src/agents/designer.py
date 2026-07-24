@@ -15,6 +15,7 @@ act on metrics the oracle produced.
 
 from __future__ import annotations
 
+import dataclasses
 import os
 from typing import TypedDict
 
@@ -184,6 +185,25 @@ def run_design(mission: Mission, brain: Brain, prescreener=None) -> DesignState:
     return final
 
 
+def build_mission(
+    target: float | None = None,
+    ceiling: float | None = None,
+    wind: float | None = None,
+    max_iterations: int | None = None,
+) -> Mission:
+    """DEFAULT_MISSION with any given fields overridden. None means "keep default"."""
+    overrides = {}
+    if target is not None:
+        overrides["target_apogee_m"] = target
+    if ceiling is not None:
+        overrides["ceiling_m"] = ceiling
+    if wind is not None:
+        overrides["wind_u"] = wind
+    if max_iterations is not None:
+        overrides["max_iterations"] = max_iterations
+    return dataclasses.replace(DEFAULT_MISSION, **overrides) if overrides else DEFAULT_MISSION
+
+
 app = typer.Typer(add_completion=False, help="Closed-loop flight designer.")
 
 
@@ -215,8 +235,13 @@ def _make_brain(kind: str) -> Brain:
 def main(
     brain: str = typer.Option("openai", help="Reasoning engine: 'openai' or 'claude' (agents), or 'stub' (offline)."),
     prescreen: bool = typer.Option(True, help="Use the Phase 2 apogee model to pre-screen motor swaps."),
+    target: float = typer.Option(None, help="Target apogee in meters (default: 3000)."),
+    ceiling: float = typer.Option(None, help="Hard waiver ceiling in meters (default: 3200)."),
+    wind: float = typer.Option(None, help="Wind speed in m/s (default: 6)."),
+    max_iterations: int = typer.Option(None, help="Simulation budget before a forced no-go (default: 8)."),
 ):
-    """Run the closed-loop designer on the default mission."""
+    """Run the closed-loop designer. Override the default mission with --target/--ceiling/--wind."""
+    mission = build_mission(target, ceiling, wind, max_iterations)
     print(f"(brain: {brain}, pre-screen: {prescreen})")
     brain_impl = _make_brain(brain)   # fails fast if claude + no API key
     prescreener = None
@@ -224,7 +249,7 @@ def main(
         from src.agents.prescreen import PreScreener
         print("Training the Phase 2 apogee pre-screen model...")
         prescreener = PreScreener()
-    run_design(DEFAULT_MISSION, brain_impl, prescreener)
+    run_design(mission, brain_impl, prescreener)
 
 
 if __name__ == "__main__":

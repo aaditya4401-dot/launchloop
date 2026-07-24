@@ -191,6 +191,9 @@ make design                            # OpenAI agents + ML pre-screen
 
 make design BRAIN=claude               # Anthropic backend (needs ANTHROPIC_API_KEY)
 make design BRAIN=stub                 # deterministic policy, fully offline (no key)
+
+# override the mission (any subset; unset ones keep the default)
+make design TARGET=4000 CEILING=4500 WIND=3
 ```
 
 The `stub` brain runs the identical LangGraph — useful for testing the loop mechanics
