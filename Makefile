@@ -1,12 +1,13 @@
 # Rocket Flight Planner — task commands
 # Run `make help` to see what's available.
 
-.PHONY: help install simulate load transform data dispersion models design demo record all clean
+.PHONY: help install test simulate load transform data dispersion models design demo record all clean
 
 BRAIN ?= openai
 
 help:
 	@echo "make install     Install/sync dependencies into .venv (via uv)"
+	@echo "make test        Run the pytest suite (~7s, fully offline)"
 	@echo "make simulate    Generate 1000 flights -> data/raw/*.parquet + labels (slow, ~6 min)"
 	@echo "make data        Rebuild the DuckDB warehouse from the Parquet files (load + dbt)"
 	@echo "make dispersion  RocketPy native Monte Carlo dispersion study (standalone)"
@@ -19,6 +20,9 @@ help:
 
 install:
 	uv sync
+
+test:
+	uv run python -m pytest -v
 
 # --- Phase 1: data engineering ---
 

@@ -1,5 +1,7 @@
 # Rocket Flight Planner & Analytics Platform
 
+[![CI](https://github.com/aaditya4401-dot/launchloop/actions/workflows/ci.yml/badge.svg)](https://github.com/aaditya4401-dot/launchloop/actions/workflows/ci.yml)
+
 > Generate realistic rocket-flight data with a physics simulator, turn it into clean
 > queryable tables, learn from it with ML, and let a team of AI agents **design** a
 > flight that meets its mission — verifying every decision against the simulator.
@@ -48,6 +50,7 @@ Requires [`uv`](https://docs.astral.sh/uv/) (installs Python 3.13 + all deps):
 
 ```bash
 uv sync                 # create .venv on Python 3.13, install everything
+make test               # run the test suite (~7s, no data or API keys needed)
 
 make simulate           # Phase 1: fly 1,000 rockets -> data/raw/*.parquet  (~6 min)
 make data               # Phase 1: load into DuckDB + build the dbt summary table
@@ -204,10 +207,12 @@ src/
 ├── pipeline/    load Parquet traces into DuckDB (load.py)
 ├── dbt/         4 SQL models: stg_traces, stg_labels, flight_metrics, flight_summary
 ├── analysis/    features.py, apogee_model.py, anomaly_model.py
-└── agents/      oracle.py (evaluate→metrics), mission.py, constraints.py,
-                 brain.py + {openai,claude}_brain.py (swappable) + agent_prompts.py,
-                 prescreen.py (ML pre-screen), designer.py (the LangGraph loop)
-data/    raw/ per-flight Parquet · warehouse.duckdb · labels.parquet
+├── agents/      oracle.py (evaluate→metrics), mission.py, constraints.py,
+│                brain.py + {openai,claude}_brain.py (swappable) + agent_prompts.py,
+│                prescreen.py (ML pre-screen), designer.py (the LangGraph loop)
+└── demo/        Streamlit UI (app.py), event streaming (events.py), replay recorder (record.py)
+tests/       pytest suite — oracle physics, constraints, mission, brain, features (27 tests, ~7s)
+data/        raw/ per-flight Parquet · warehouse.duckdb · labels.parquet
 notebooks/   README charts
 ```
 

@@ -25,4 +25,4 @@ jobs:
         run: uv sync --locked
 
       - name: Run tests
-        run: uv run pytest -v
+        run: make test
