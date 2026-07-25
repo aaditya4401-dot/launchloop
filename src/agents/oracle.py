@@ -79,6 +79,29 @@ def _landing_radius(flight: Flight) -> float:
     return math.hypot(float(flight.x_impact), float(flight.y_impact))
 
 
+def fly_trace(
+    config: Config,
+    wind_u: float,
+    wind_v: float,
+    descent_window_s: float = 60.0,
+) -> tuple[list[float], list[float]]:
+    """Fly `config` and return (time, altitude_agl) for VISUALIZATION only.
+
+    This is not part of the oracle's decision contract — agents only ever see
+    the four summary Metrics, never a trace. It exists for the demo UI, so a
+    design iteration can be shown as a real flight profile instead of a bare
+    number. Trimmed to apogee_time + descent_window_s: flights run ~300s to
+    landing under the slow main parachute, which would squash the interesting
+    ascent/apogee shape into a sliver of an altitude-vs-time plot.
+    """
+    flight = _fly(config, wind_u, wind_v)
+    t_full = np.asarray(flight.time, dtype=float)
+    cutoff = float(flight.apogee_time) + descent_window_s
+    t = t_full[t_full <= cutoff]
+    alt = np.asarray(flight.altitude(t), dtype=float)
+    return t.tolist(), alt.tolist()
+
+
 def evaluate(
     config: Config,
     wind_u: float,

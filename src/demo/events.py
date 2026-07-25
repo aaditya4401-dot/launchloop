@@ -20,6 +20,7 @@ from typing import Iterator
 from src.agents.brain import ROLES, Brain
 from src.agents.designer import build_graph
 from src.agents.mission import MOTOR_MENU, Mission
+from src.agents.oracle import fly_trace
 
 
 def _motor_name(impulse: float) -> str:
@@ -73,7 +74,7 @@ def _config_change(old, new) -> str:
     return "no change"
 
 
-def _iteration_event(record: dict, opinions: dict, prescreen) -> dict:
+def _iteration_event(record: dict, opinions: dict, prescreen, trace) -> dict:
     ops = [
         {"role": o.role, "satisfied": o.satisfied,
          "assessment": o.assessment, "suggestion": o.suggestion}
@@ -88,6 +89,7 @@ def _iteration_event(record: dict, opinions: dict, prescreen) -> dict:
     if prescreen:
         ps = [{"motor": e.motor_name, "apogee_m": e.predicted_apogee_m,
                "in_envelope": e.in_envelope} for e in prescreen]
+    t, alt = trace
     return {
         "type": "iteration",
         "iteration": record["iteration"],
@@ -100,6 +102,7 @@ def _iteration_event(record: dict, opinions: dict, prescreen) -> dict:
         "disagreement": disagreement,
         "prescreen": ps,
         "decision": dec,
+        "trace": {"time_s": t, "altitude_m": alt},
     }
 
 
@@ -124,7 +127,11 @@ def stream_events(mission: Mission, brain: Brain, prescreener=None) -> Iterator[
             prescreen = delta["prescreen"]
         elif node == "orchestrator":
             record = delta["history"][-1]
-            yield _iteration_event(record, opinions, prescreen)
+            # Re-fly the just-evaluated config to get its altitude-vs-time profile
+            # (visualization only -- the graph's own evaluate() already produced
+            # the decision-relevant Metrics; see fly_trace's docstring).
+            trace = fly_trace(record["config"], mission.wind_u, mission.wind_v)
+            yield _iteration_event(record, opinions, prescreen, trace)
             if "verdict" in delta:
                 yield {
                     "type": "verdict",

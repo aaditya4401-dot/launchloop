@@ -8,7 +8,9 @@ dispersion_sims=0 everywhere except the two tests that specifically exercise
 dispersion, to keep the suite fast (each real flight sim is ~0.3-0.5s).
 """
 
-from src.agents.oracle import Config, evaluate
+import pytest
+
+from src.agents.oracle import Config, evaluate, fly_trace
 
 WIND_U, WIND_V = 6.0, 0.0
 
@@ -64,3 +66,16 @@ def test_positive_dispersion_sims_returns_a_positive_spread():
                        dispersion_sims=6, seed=1)
     assert metrics.landing_dispersion_m is not None
     assert metrics.landing_dispersion_m > 0
+
+
+def test_fly_trace_apogee_matches_evaluate():
+    # The demo-only trace and the decision-relevant Metrics come from the same
+    # physics -- their apogees must agree exactly.
+    config = Config(motor_total_impulse=6000.0)
+    t, alt = fly_trace(config, WIND_U, WIND_V)
+
+    assert len(t) == len(alt)
+    assert t == sorted(t)  # time is monotonically increasing
+
+    metrics = evaluate(config, WIND_U, WIND_V, dispersion_sims=0)
+    assert max(alt) == pytest.approx(metrics.apogee_m, abs=0.5)

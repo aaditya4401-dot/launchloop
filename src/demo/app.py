@@ -118,9 +118,38 @@ def render_iteration(ev: dict):
     st.divider()
 
 
+def render_flight_trace(placeholder, ev: dict, mission: dict):
+    """Altitude-vs-time profile for the flight just simulated this iteration —
+    the rocket actually flying, straight from RocketPy's trajectory, instead of
+    a bare 'iteration N of M' counter."""
+    trace = ev["trace"]
+    t, alt = trace["time_s"], trace["altitude_m"]
+    cfg = ev["config"]
+
+    fig, ax = plt.subplots(figsize=(6, 3.4))
+    ax.axhline(mission["target_apogee_m"], color="#54A24B", ls="--", lw=1, label="target")
+    ax.axhline(mission["ceiling_m"], color="#E45756", ls="--", lw=1, label="ceiling")
+    ax.plot(t, alt, color="#4C78A8", lw=1.8, zorder=1)
+    ax.fill_between(t, alt, color="#4C78A8", alpha=0.08)
+
+    apogee_idx = max(range(len(alt)), key=lambda i: alt[i])
+    apogee_color = "#54A24B" if ev["hard_ok"] else "#E45756"
+    ax.scatter([t[apogee_idx]], [alt[apogee_idx]], color=apogee_color, s=90, zorder=3,
+               label=f"apogee {alt[apogee_idx]:.0f} m")
+
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Altitude (m)")
+    ax.set_title(f"Iteration {ev['iteration']} flight — {cfg['motor']}")
+    ax.set_ylim(bottom=0)
+    ax.legend(loc="upper right", fontsize=8)
+    fig.tight_layout()
+    placeholder.pyplot(fig)
+    plt.close(fig)
+
+
 def render_chart(placeholder, mission: dict, apogees: list[tuple[int, float, bool]], verdict=None):
     """Apogee-vs-iteration convergence, with target & ceiling reference lines."""
-    fig, ax = plt.subplots(figsize=(7, 4))
+    fig, ax = plt.subplots(figsize=(6, 3.4))
     ax.axhline(mission["ceiling_m"], color="#E45756", ls="--", lw=1.2, label="ceiling (hard)")
     ax.axhline(mission["target_apogee_m"], color="#54A24B", ls="--", lw=1.2, label="target")
     if apogees:
@@ -197,6 +226,8 @@ def drive(source):
         st.subheader("Design loop")
         loop_box = st.container()
     with right:
+        st.subheader("This iteration's flight")
+        trace_box = st.empty()
         st.subheader("Convergence")
         chart_box = st.empty()
 
@@ -208,6 +239,7 @@ def drive(source):
         elif ev["type"] == "iteration":
             with loop_box:
                 render_iteration(ev)
+            render_flight_trace(trace_box, ev, mission)
             apogees.append((ev["iteration"], ev["metrics"]["apogee_m"], ev["hard_ok"]))
             render_chart(chart_box, mission, apogees)
         elif ev["type"] == "verdict":
