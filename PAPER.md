@@ -1,6 +1,6 @@
 # The Simulator Is the Oracle: Quantifying Closed-Loop Verification in Automated Rocket Design
 
-**[Author name]** · [affiliation / independent] · launchloop — github.com/aaditya4401-dot/launchloop
+**Aaditya Edupuganti** · Independent Researcher · Bachelor's in Aerospace Engineering and Master's in Data Science, IIT Madras · launchloop — github.com/aaditya4401-dot/launchloop
 
 *Preprint draft. Results in this version use a deterministic corrective policy;
 the competing-objective LLM instantiation is described as framework and its
