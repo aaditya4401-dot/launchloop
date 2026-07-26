@@ -3,6 +3,7 @@ name = "rocketry-project"
 version = "0.1.0"
 description = "Rocket flight planner & analytics platform: simulation, ML, and multi-agent AI over simulated rocketry data."
 requires-python = ">=3.13,<3.14"
+license = "MIT"
 dependencies = [
     # --- Phase 1: data engineering ---
     "rocketpy>=1.12,<1.13",  # rocket flight simulator — our data source (1.13 not yet on PyPI; latest is 1.12.1)

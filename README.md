@@ -1,6 +1,7 @@
 # Rocket Flight Planner & Analytics Platform
 
 [![CI](https://github.com/aaditya4401-dot/launchloop/actions/workflows/ci.yml/badge.svg)](https://github.com/aaditya4401-dot/launchloop/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > Generate realistic rocket-flight data with a physics simulator, turn it into clean
 > queryable tables, learn from it with ML, and let a team of AI agents **design** a
