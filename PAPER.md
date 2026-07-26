@@ -311,17 +311,22 @@ results are from `make study N=100` (seed 0) and
 
 ## References
 
-[1] Physics-in-the-Loop: A Hybrid Agentic Architecture for Validated CAD
-Engineering Design. arXiv:2605.19717.
+*(arXiv identifiers and titles verified against the arXiv abstract pages.)*
 
-[2] Frontier-Eng: Benchmarking Self-Evolving Agents on Real-World Engineering
-Tasks with Generative Optimization. arXiv:2604.12290.
+[1] E. Berger, M. Usama, J. Mehlstäubl, B. Saske, and K. Paetzold-Byhain.
+Physics-in-the-Loop: A Hybrid Agentic Architecture for Validated CAD Engineering
+Design. arXiv:2605.19717, 2026. (Accepted, IJCAI-ECAI 2026, AI4Tech track.)
 
-[3] On the Role of Feedback in Test-Time Scaling of Agentic AI Workflows.
-arXiv:2504.01931.
+[2] Y. Chi, D. Hong, D. Jiang, et al. Frontier-Eng: Benchmarking Self-Evolving
+Agents on Real-World Engineering Tasks with Generative Optimization.
+arXiv:2604.12290, 2026.
 
-[4] TurboAgent: An LLM-Driven Autonomous Multi-Agent Framework for Turbomachinery
-Aerodynamic Design. arXiv:2604.06747.
+[3] S. Chakraborty, M. Pourreza, R. Sun, et al. On the Role of Feedback in
+Test-Time Scaling of Agentic AI Workflows. arXiv:2504.01931, 2025.
 
-[5] RocketPy: Six Degree-of-Freedom Rocket Trajectory Simulator.
+[4] J. Du, Y. Wu, P. Zhao, Y. Liu, M. Zhang, X. Xu, and X. Zhang. TurboAgent: An
+LLM-Driven Autonomous Multi-Agent Framework for Turbomachinery Aerodynamic
+Design. arXiv:2604.06747, 2026.
+
+[5] RocketPy Team. RocketPy: Six Degree-of-Freedom Rocket Trajectory Simulator.
 github.com/RocketPy-Team/RocketPy.
