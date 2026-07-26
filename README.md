@@ -207,16 +207,24 @@ real [OpenRocket](https://openrocket.info) `.ork` file — the industry-standard
 tool the hobby/collegiate rocketry community actually uses:
 
 ```bash
-make export-ork              # writes launchloop_design.ork (refuses a NO_GO result)
+make export-ork              # writes launchloop_design.ork + launchloop-<motor>.rse
 make export-ork FORCE=1      # export anyway, e.g. to inspect a failed attempt
 ```
 
-The motor's thrust curve is embedded exactly as simulated (sampled straight from the
-real RocketPy motor object, not approximated against an unrelated real motor), and
-the ballast/parachute/rail-angle match the agents' verified config. The airframe's
+The motor's thrust curve is sampled exactly as simulated (straight from the real
+RocketPy motor object, not approximated against an unrelated real motor), and the
+ballast/parachute/rail-angle match the agents' verified config. The airframe's
 internal mass distribution is a reasonable material+geometry approximation — our own
 simulation never modeled it at that level of detail either; see the docstring in
 [`export_ork.py`](src/agents/export_ork.py) for the full honesty note.
+
+**One-time OpenRocket motor setup.** OpenRocket's installed release only loads a
+custom motor from a directory registered under *Edit > Preferences > Motor >
+Thrust curves* — it does not read a motor embedded inside the `.ork` file itself
+(that only works on OpenRocket's unreleased dev build). `make export-ork` writes
+the sibling `.rse` file alongside the `.ork` and prints the exact folder to add;
+add it once, restart OpenRocket, and every future export's motor resolves
+automatically by designation.
 
 ---
 

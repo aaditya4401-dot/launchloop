@@ -15,6 +15,7 @@ data/last_design.json
 
 # make export-ork output
 *.ork
+launchloop-*.rse
 
 # dbt build artifacts + local telemetry
 src/dbt/target/
@@ -24,3 +25,8 @@ src/dbt/.user.yml
 
 # OS / editor
 .DS_Store
+
+# Downloaded installers / local tooling scaffolding (not part of the project)
+*.dmg
+.claude/
+.agents/

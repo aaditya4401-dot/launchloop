@@ -14,12 +14,18 @@ cross-checked the custom-motor format against OpenRocket's own wiki. Key facts:
     <parachute>, <innertube> for the motor mount).
   - Launch conditions (rail length/angle, wind) live separately, under
     <simulations><simulation><conditions>.
-  - A motor not in OpenRocket's built-in database is loaded from an embedded
-    `thrustcurves/<digest>.rse` file (RockSim engine XML) inside the same zip.
-    We always embed our own curve here: our motor menu is synthetic (scaled
-    from one base curve, not real commercial motors), so embedding is the only
-    way the export reproduces EXACTLY what was simulated, rather than
-    approximating a match to an unrelated real motor.
+  - A motor not in OpenRocket's built-in database is described as a RockSim
+    engine (.rse) file. We embed one at `thrustcurves/<digest>.rse` inside the
+    zip for forward compatibility (OpenRocket's unreleased dev branch can load
+    a motor straight out of that path), but the actual installed release
+    (verified against the `release-24.12` tag, not the `unstable` default
+    branch this repo's earlier research mistakenly read from) never reads it
+    -- its `MotorHandler.getMotor()` only ever queries the built-in motor
+    database. Its ONLY supported way to add a truly custom motor is via
+    Edit > Preferences > Motor > "Thrust curves" directories, indexed at
+    startup. So `make export-ork` also writes the .rse as a sibling file next
+    to the .ork and prints that one-time setup step -- the embedded zip copy
+    is a free bonus for a future OpenRocket version, not the working path.
 
 Units: rocket.ork uses SI (meters, kilograms, radians). The .rse motor file
 uses RockSim's traditional units (millimeters, grams, Newtons, seconds) --
@@ -41,6 +47,7 @@ import dataclasses
 import io
 import json
 import math
+import uuid
 import zipfile
 from pathlib import Path
 from xml.dom import minidom
@@ -84,6 +91,21 @@ def _sub(parent, tag, text=None, **attrs) -> ET.Element:
     el = ET.SubElement(parent, tag, {k: str(v) for k, v in attrs.items()})
     if text is not None:
         el.text = str(text)
+    return el
+
+
+def _new_id() -> str:
+    return str(uuid.uuid4())
+
+
+def _named(parent, tag: str, name: str) -> ET.Element:
+    """A component element with <name> and <id> -- every single component in
+    real OpenRocket files has both (verified against real example .ork files);
+    an early version of this exporter omitted <id> entirely and OpenRocket's
+    loader threw an uncaught exception opening the file."""
+    el = ET.SubElement(parent, tag)
+    _sub(el, "name", name)
+    _sub(el, "id", _new_id())
     return el
 
 
@@ -160,7 +182,11 @@ def _build_rocket_xml(config: Config, mission: Mission, digest: str,
                       creator="LaunchLoop closed-loop flight designer")
     rocket = ET.SubElement(root, "rocket")
     _sub(rocket, "name", f"LaunchLoop design ({motor_name})")
+    _sub(rocket, "id", _new_id())
+    _sub(rocket, "axialoffset", "0.0", method="absolute")
+    _sub(rocket, "position", "0.0", type="absolute")
     _sub(rocket, "designer", "LaunchLoop (github.com/aaditya4401-dot/launchloop)")
+    _sub(rocket, "designtype", "original")
     _sub(rocket, "referencetype", "maximum")
 
     configid = "00000000-0000-0000-0000-000000000001"
@@ -168,14 +194,12 @@ def _build_rocket_xml(config: Config, mission: Mission, digest: str,
     ET.SubElement(mc, "stage", number="0", active="true")
 
     subs = ET.SubElement(rocket, "subcomponents")
-    stage = ET.SubElement(subs, "stage")
-    _sub(stage, "name", "Sustainer")
+    stage = _named(subs, "stage", "Sustainer")
     body_subs_parent = ET.SubElement(stage, "subcomponents")
 
     # --- nose cone --- RocketPy's "von karman" = Haack series, shape param 0
     # (verified: HAACK_SERIES with C=0 is Von Karman, per OpenRocket's own docs).
-    nose = ET.SubElement(body_subs_parent, "nosecone")
-    _sub(nose, "name", "Nose cone")
+    nose = _named(body_subs_parent, "nosecone", "Nose cone")
     _sub(nose, "material", "Fiberglass", **MATERIAL)
     _sub(nose, "length", f"{NOSE_LENGTH:.5f}")
     _sub(nose, "thickness", "0.003")
@@ -192,8 +216,7 @@ def _build_rocket_xml(config: Config, mission: Mission, digest: str,
         position-from-the-body-tube's-top-edge convention."""
         return NOSE_POSITION - rocketpy_position
 
-    body = ET.SubElement(body_subs_parent, "bodytube")
-    _sub(body, "name", "Body tube")
+    body = _named(body_subs_parent, "bodytube", "Body tube")
     _sub(body, "material", "Fiberglass", **MATERIAL)
     _sub(body, "length", f"{body_length:.5f}")
     _sub(body, "thickness", "0.003")
@@ -208,16 +231,14 @@ def _build_rocket_xml(config: Config, mission: Mission, digest: str,
     # --- ballast: a real point mass, exactly the agents' chosen value ---
     if config.ballast_mass > 0:
         offset = from_top(BALLAST_POSITION)
-        ballast = ET.SubElement(body_subs, "masscomponent")
-        _sub(ballast, "name", "Ballast (agent-selected)")
+        ballast = _named(body_subs, "masscomponent", "Ballast (agent-selected)")
         _sub(ballast, "axialoffset", f"{offset:.5f}", method="top")
         _sub(ballast, "position", f"{offset:.5f}", type="top")
         _sub(ballast, "mass", f"{config.ballast_mass:.4f}")
         _sub(ballast, "masscomponenttype", "masscomponent")
 
     # --- main parachute: cd*S -> physical diameter under an assumed cd ---
-    chute = ET.SubElement(body_subs, "parachute")
-    _sub(chute, "name", "Main parachute")
+    chute = _named(body_subs, "parachute", "Main parachute")
     _sub(chute, "axialoffset", "0.1", method="top")
     _sub(chute, "position", "0.1", type="top")
     _sub(chute, "cd", "0.8")
@@ -227,8 +248,7 @@ def _build_rocket_xml(config: Config, mission: Mission, digest: str,
     _sub(chute, "deploydelay", "0.0")
 
     # --- fins ---
-    fins = ET.SubElement(body_subs, "trapezoidfinset")
-    _sub(fins, "name", "Fins")
+    fins = _named(body_subs, "trapezoidfinset", "Fins")
     _sub(fins, "fincount", FIN_COUNT)
     offset = from_top(FIN_POSITION)
     _sub(fins, "axialoffset", f"{offset:.5f}", method="top")
@@ -243,30 +263,30 @@ def _build_rocket_xml(config: Config, mission: Mission, digest: str,
     _sub(fins, "sweeplength", f"{(FIN_ROOT_CHORD - FIN_TIP_CHORD) / 2:.5f}")
     _sub(fins, "height", f"{FIN_SPAN:.5f}")
 
-    # --- tail (a boat-tail; OpenRocket calls this a "transition") ---
-    tail = ET.SubElement(body_subs, "transition")
-    _sub(tail, "name", "Tail")
-    offset = from_top(TAIL_POSITION)
-    _sub(tail, "axialoffset", f"{offset:.5f}", method="top")
-    _sub(tail, "position", f"{offset:.5f}", type="top")
-    _sub(tail, "material", "Fiberglass", **MATERIAL)
-    _sub(tail, "thickness", "0.003")
-    _sub(tail, "shape", "conical")
-    _sub(tail, "foreradius", f"{TAIL_TOP_RADIUS:.5f}")
-    _sub(tail, "aftradius", f"{TAIL_BOTTOM_RADIUS:.5f}")
-    _sub(tail, "length", f"{TAIL_LENGTH:.5f}")
-
     # --- motor mount (inner tube housing the embedded custom motor) ---
-    inner = ET.SubElement(body_subs, "innertube")
-    _sub(inner, "name", "Motor mount")
-    offset = from_top(MOTOR_POSITION)
+    inner = _named(body_subs, "innertube", "Motor mount")
+    motor_len = motor.grain_number * motor.grain_initial_height
+    # MOTOR_POSITION is the motor's own coordinate-system origin, which is the
+    # nozzle (nozzle_position=0, coordinate_system_orientation=
+    # "nozzle_to_combustion_chamber" in rocket.py) -- the aft tip of the motor,
+    # not its front edge. OpenRocket's innertube position is measured from its
+    # OWN front edge, so the front edge sits motor_len forward of the nozzle;
+    # using MOTOR_POSITION directly (without this offset) pushed the whole
+    # mount motor_len further aft, sticking it out past the tail into open
+    # space instead of nesting it inside the body tube.
+    offset = from_top(MOTOR_POSITION + motor_len)
     _sub(inner, "axialoffset", f"{offset:.5f}", method="top")
     _sub(inner, "position", f"{offset:.5f}", type="top")
     _sub(inner, "material", "Fiberglass", **MATERIAL)
-    motor_len = motor.grain_number * motor.grain_initial_height
     _sub(inner, "length", f"{motor_len:.5f}")
-    _sub(inner, "radius", f"{motor.nozzle_radius:.5f}")
+    # Real OpenRocket .ork files use <outerradius>, not <radius> -- verified
+    # against a real example ("Base drag hack (short-wide).ork"); an earlier
+    # version of this exporter used the wrong tag name and OpenRocket's loader
+    # warned "Unknown parameter type 'radius' for Inner Tube, ignoring."
+    _sub(inner, "outerradius", f"{motor.nozzle_radius:.5f}")
     _sub(inner, "thickness", "0.002")
+    _sub(inner, "radialposition", "0.0")
+    _sub(inner, "radialdirection", "0.0")
 
     mount = ET.SubElement(inner, "motormount")
     _sub(mount, "ignitionevent", "automatic")
@@ -283,6 +303,22 @@ def _build_rocket_xml(config: Config, mission: Mission, digest: str,
     ic = ET.SubElement(mount, "ignitionconfiguration", configid=configid)
     _sub(ic, "ignitionevent", "automatic")
     _sub(ic, "ignitiondelay", "0.0")
+
+    # --- tail (a boat-tail; OpenRocket calls this a "transition") ---
+    # MUST be a sibling of the body tube, not nested inside it -- verified
+    # against a real OpenRocket example (Base drag hack.ork): nesting a
+    # <transition> inside <bodytube><subcomponents> throws
+    # "IllegalStateException: Component: Transition not currently compatible
+    # with component: Body Tube" when OpenRocket loads the file. Siblings in
+    # a stage stack sequentially with no explicit axialoffset/position needed
+    # (confirmed: the real example's transition has neither tag).
+    tail = _named(body_subs_parent, "transition", "Tail")
+    _sub(tail, "material", "Fiberglass", **MATERIAL)
+    _sub(tail, "thickness", "0.003")
+    _sub(tail, "shape", "conical")
+    _sub(tail, "foreradius", f"{TAIL_TOP_RADIUS:.5f}")
+    _sub(tail, "aftradius", f"{TAIL_BOTTOM_RADIUS:.5f}")
+    _sub(tail, "length", f"{TAIL_LENGTH:.5f}")
 
     # --- simulation conditions: rail length/angle/heading + wind ---
     # our rail_inclination is deg-from-horizontal (90=vertical); OpenRocket's
@@ -327,6 +363,14 @@ def build_ork_bytes(config: Config, metrics: Metrics, mission: dict) -> bytes:
     return buf.getvalue()
 
 
+def build_rse_bytes(motor_name: str, impulse: float) -> bytes:
+    """The standalone .rse file, for OpenRocket's actual supported custom-motor
+    path: adding its directory under Edit > Preferences > Motor > 'Thrust
+    curves' (see module docstring)."""
+    motor = build_motor_for_impulse(impulse)
+    return _build_rse_xml(motor, motor_name).encode("utf-8")
+
+
 app = typer.Typer(add_completion=False, help="Export the last verified design as an .ork file.")
 
 
@@ -354,8 +398,20 @@ def main(
     metrics = Metrics(**record["metrics"])
     data = build_ork_bytes(config, metrics, record["mission"])
     Path(out).write_bytes(data)
+
+    motor_name = _motor_name(config.motor_total_impulse)
+    rse_path = Path(out).with_name(f"launchloop-{motor_name}.rse")
+    rse_path.write_bytes(build_rse_bytes(motor_name, config.motor_total_impulse))
+
     print(f"Wrote {out} ({len(data):,} bytes) — verdict was {record['verdict'].upper()}")
-    print("Open it in OpenRocket (openrocket.info) to inspect the verified design.")
+    print(f"Wrote {rse_path} — the exact simulated motor's thrust curve.")
+    print(
+        "\nOne-time OpenRocket setup (its installed release only loads custom\n"
+        "motors this way, not from inside the .ork):\n"
+        f"  1. Edit > Preferences > Motor > add '{rse_path.parent}' as a thrust curve directory\n"
+        "  2. Restart OpenRocket\n"
+        f"  3. Open {out} — motor '{motor_name}' (mfg LaunchLoop) will resolve automatically."
+    )
 
 
 if __name__ == "__main__":
