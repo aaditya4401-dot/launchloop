@@ -30,3 +30,6 @@ src/dbt/.user.yml
 *.dmg
 .claude/
 .agents/
+
+# Ablation-study outputs (regenerable via `make study` + analyze)
+results/

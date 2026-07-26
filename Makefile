@@ -1,7 +1,7 @@
 # Rocket Flight Planner — task commands
 # Run `make help` to see what's available.
 
-.PHONY: help install test simulate load transform data dispersion models design export-ork demo record all clean
+.PHONY: help install test simulate load transform data dispersion models design export-ork study demo record all clean
 
 BRAIN ?= openai
 
@@ -15,6 +15,8 @@ help:
 	@echo "make design      Phase 3: closed-loop flight designer (BRAIN=openai default; also claude or stub-offline)"
 	@echo "                 override the mission: TARGET=/CEILING=/WIND=/MAX_ITERATIONS="
 	@echo "make export-ork  Export the last make design result as an OpenRocket (.ork) file"
+	@echo "make study       Ablation study: one_shot vs full_loop over N random missions (stub=free)"
+	@echo "                 override: N= SEED= BRAIN= (stub default); writes results/study.parquet"
 	@echo "make demo        Streamlit UI for the design loop (replay mode needs no key)"
 	@echo "make record      Re-record the demo's replay run to JSON (offline stub)"
 	@echo "make all         Full rebuild from scratch: simulate + data"
@@ -71,6 +73,14 @@ design:
 # Refuses a NO_GO result unless FORCE=1.
 export-ork:
 	uv run python -m src.agents.export_ork $(if $(FORCE),--force)
+
+# Ablation study (RESEARCH_PLAN.md): one_shot vs full_loop over N random missions.
+# Defaults to the deterministic offline `stub` brain (free, reproducible). Override
+# N=, SEED=, or BRAIN=claude|openai. Writes results/study.parquet.
+study: BRAIN := stub
+study:
+	uv run python -m src.experiments.run_study \
+		$(if $(N),--n $(N)) $(if $(SEED),--seed $(SEED)) --brain $(BRAIN)
 
 # Streamlit demo UI. PYTHONPATH=. so `import src.*` resolves under `streamlit run`.
 demo:

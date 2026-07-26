@@ -99,6 +99,31 @@ class StubBrain:
                        f"Landing dispersion {'n/a' if disp is None else f'{disp:.0f} m'} acceptable.",
                        "hold")
 
+    # ---- single-shot planner (for the one_shot study baseline) -----------
+    def cold_propose(self, mission, config, metrics, report) -> Decision:
+        """A STRONG single proposal from one oracle look — the fair one-shot
+        control (see src/experiments/one_shot.py).
+
+        The corrective `orchestrate` policy deliberately moves one lever per
+        turn, which is a strawman when it gets only one shot. This instead makes
+        the best *compound* guess the policy can from a single flight: apogee is
+        roughly linear in total impulse, so extrapolate the impulse that would
+        hit the target and pick the nearest menu motor. No iteration — this is
+        distinct from the loop's turn-by-turn correction.
+        """
+        if metrics.apogee_m <= 0:
+            return Decision("propose", "No usable apogee reading; keep start config.", config)
+        menu = sorted(mission.motor_menu, key=lambda m: m.total_impulse)
+        desired = config.motor_total_impulse * (mission.target_apogee_m / metrics.apogee_m)
+        best = min(menu, key=lambda m: abs(m.total_impulse - desired))
+        return Decision(
+            "propose",
+            f"One-shot: {metrics.apogee_m:.0f} m at {config.motor_total_impulse:.0f} N·s "
+            f"→ extrapolate ~{desired:.0f} N·s for the {mission.target_apogee_m:.0f} m "
+            f"target → pick {best.name}.",
+            dataclasses.replace(config, motor_total_impulse=best.total_impulse),
+        )
+
     # ---- orchestrator ----------------------------------------------------
     def orchestrate(self, mission, config, metrics, report, opinions, history,
                     prescreen=None) -> Decision:
