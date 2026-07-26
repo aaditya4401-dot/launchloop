@@ -128,30 +128,37 @@ Secondary:
 - **+1:** add `no_prescreen` (RQ4) and `single_agent` (RQ3), still stub.
 - **+2:** LLM confirmation on a 20-mission subset (RQ5), k = 3.
 
-## Preliminary results (stub brain, N = 30, seed 0)
+## Preliminary results (stub brain, N = 100, seed 0)
 
 Arms: `one_shot`, `full_loop`, `brute_force` (exhaustive motor×ballast search =
-feasibility ceiling). Reproduce with `make study` then
-`uv run python -m src.experiments.analyze`.
+feasibility ceiling). Reproduce with `make study N=100` (add
+`--dispersion-sims 0` for speed; the stub's decisions ignore dispersion) then
+`uv run python -m src.experiments.analyze`. Consistent with an earlier N = 30 run.
 
 | arm | success | feasible-subset | hidden viol | mean sims | mean err |
 |---|---|---|---|---|---|
-| one_shot | 33% | 83% | 67% | 1.0 | 339 m |
-| full_loop | 40% | 100% | 0% | 6.1 | 321 m |
-| brute_force | 40% | 100% | 0% | 28.0 | 71 m |
+| one_shot | 31% | 89% | 69% | 1.0 | 385 m |
+| full_loop | 35% | 100% | 0% | 6.3 | 464 m |
+| brute_force | 35% | 100% | 0% | 28.0 | 80 m |
 
-Only 12/30 (40%) missions are feasible in the motor×ballast space. Findings:
+Only 35/100 (35%) missions are feasible in the motor×ballast space. Findings:
 
 1. **Ceiling-matching efficiency (robust).** The closed loop solves every
-   feasible mission (12/12), matching exhaustive search, using ~6 simulations
-   vs brute-force's 28 (≈4.6× fewer). Same optimum, a fifth of the cost.
+   feasible mission (35/35), matching exhaustive search, using ~6.3 simulations
+   vs brute-force's 28 (≈4.5× fewer). Same optimum, a fifth of the cost.
 2. **Reliability (robust).** The loop never ships an invalid design (0% hidden
-   violations); a strong single-shot commits to invalid configs on 67% of
+   violations); a strong single-shot commits to invalid configs on 69% of
    missions — it cannot detect this without simulating.
-3. **Not a claim.** The one_shot-vs-full_loop *success* gap on feasible missions
-   (83% vs 100%) is NOT significant at this N (McNemar p = 0.50, 2 discordant).
-   Do not claim the loop solves more than one-shot; claim (1) and (2).
+3. **Solves-more: trending, not significant.** On feasible missions full_loop
+   solved 4 that one_shot didn't, 0 the reverse (100% vs 89%), but McNemar
+   p = 0.125 (4 discordant). Do not claim the loop solves more; claim (1),(2).
+4. **Apogee error is a trap metric — never report it alone.** Overall, one_shot
+   has *lower* mean apogee error (385 vs 464 m; Wilcoxon p = 0.002) — but only
+   because it aims straight at target apogee while ignoring the hard safety
+   constraints (the same reason it ships 69% invalid designs). On the feasible
+   subset the direction reverses (p = 0.068). Always pair apogee error with the
+   violation rate.
 
-Limitations: N = 30; deterministic stub policy (not LLM); feasibility defined
-over motor×ballast only (the stub's reachable space — LLM brains can also move
+Limitations: deterministic stub policy (not LLM); feasibility defined over
+motor×ballast only (the stub's reachable space — LLM brains can also move
 rail/chute, expanding it). These motivate the +1/+2 phases above.

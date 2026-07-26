@@ -129,6 +129,10 @@ def main(
     brain: str = typer.Option("stub", help="Reasoning engine: 'stub' (free), 'openai', or 'claude'."),
     prescreen: bool = typer.Option(False, help="Enable the ML pre-screen in the full_loop arm."),
     arms: str = typer.Option("one_shot,full_loop,brute_force", help="Comma-separated arms to run."),
+    dispersion_sims: int = typer.Option(
+        -1, help="Override each mission's landing-dispersion ensemble size. "
+                 "0 skips it (much faster; safe for the stub, whose decisions ignore "
+                 "dispersion). -1 keeps the mission default."),
 ):
     """Run the study matrix and write results/study.parquet."""
     selected = [a.strip() for a in arms.split(",") if a.strip()]
@@ -137,6 +141,10 @@ def main(
             raise SystemExit(f"unknown arm '{a}' (choices: {', '.join(ARMS)})")
 
     missions = random_missions(n, seed)
+    if dispersion_sims >= 0:
+        import dataclasses
+        missions = [dataclasses.replace(m, dispersion_sims=dispersion_sims)
+                    for m in missions]
     brain_impl = _make_brain(brain)
     prescreener = None
     if prescreen:
