@@ -1,7 +1,7 @@
 # Rocket Flight Planner — task commands
 # Run `make help` to see what's available.
 
-.PHONY: help install test simulate load transform data dispersion models design demo record all clean
+.PHONY: help install test simulate load transform data dispersion models design export-ork demo record all clean
 
 BRAIN ?= openai
 
@@ -14,6 +14,7 @@ help:
 	@echo "make models      Phase 2: train apogee prediction + anomaly detection, save charts"
 	@echo "make design      Phase 3: closed-loop flight designer (BRAIN=openai default; also claude or stub-offline)"
 	@echo "                 override the mission: TARGET=/CEILING=/WIND=/MAX_ITERATIONS="
+	@echo "make export-ork  Export the last make design result as an OpenRocket (.ork) file"
 	@echo "make demo        Streamlit UI for the design loop (replay mode needs no key)"
 	@echo "make record      Re-record the demo's replay run to JSON (offline stub)"
 	@echo "make all         Full rebuild from scratch: simulate + data"
@@ -64,6 +65,12 @@ design:
 		$(if $(CEILING),--ceiling $(CEILING)) \
 		$(if $(WIND),--wind $(WIND)) \
 		$(if $(MAX_ITERATIONS),--max-iterations $(MAX_ITERATIONS))
+
+# Export the last make design result as a real OpenRocket .ork file (motor
+# curve embedded exactly, ballast/chute/rail matching the verified config).
+# Refuses a NO_GO result unless FORCE=1.
+export-ork:
+	uv run python -m src.agents.export_ork $(if $(FORCE),--force)
 
 # Streamlit demo UI. PYTHONPATH=. so `import src.*` resolves under `streamlit run`.
 demo:

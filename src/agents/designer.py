@@ -16,7 +16,9 @@ act on metrics the oracle produced.
 from __future__ import annotations
 
 import dataclasses
+import json
 import os
+from pathlib import Path
 from typing import TypedDict
 
 import typer
@@ -28,6 +30,10 @@ from src.agents.mission import DEFAULT_MISSION, MOTOR_MENU, Mission
 from src.agents.oracle import Config, Metrics, evaluate
 
 _IMPULSE_TO_NAME = {m.total_impulse: m.name for m in MOTOR_MENU}
+
+# Where the last make design result is persisted, so `make export-ork` can
+# read it as a separate command without re-running the (slower) design loop.
+LAST_DESIGN_PATH = Path("data/last_design.json")
 
 
 class DesignState(TypedDict):
@@ -182,6 +188,17 @@ def run_design(mission: Mission, brain: Brain, prescreener=None) -> DesignState:
           f"| dispersion {_fmt_dispersion(m.landing_dispersion_m)}")
     print(f"  Iterations   : {final['iteration']} / {mission.max_iterations}")
     print("=" * 68)
+
+    LAST_DESIGN_PATH.parent.mkdir(parents=True, exist_ok=True)
+    LAST_DESIGN_PATH.write_text(json.dumps({
+        "verdict": final["verdict"],
+        "rationale": final["verdict_rationale"],
+        "config": dataclasses.asdict(final["config"]),
+        "metrics": dataclasses.asdict(final["metrics"]),
+        "mission": dataclasses.asdict(mission),
+        "iteration": final["iteration"],
+    }, indent=2))
+    print(f"Saved result -> {LAST_DESIGN_PATH}  (for `make export-ork`)")
     return final
 
 

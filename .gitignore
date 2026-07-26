@@ -11,6 +11,10 @@ data/raw/*.parquet
 data/labels.parquet
 data/warehouse.duckdb
 data/dispersion/
+data/last_design.json
+
+# make export-ork output
+*.ork
 
 # dbt build artifacts + local telemetry
 src/dbt/target/

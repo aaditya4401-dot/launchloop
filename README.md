@@ -200,6 +200,24 @@ make design TARGET=4000 CEILING=4500 WIND=3
 The `stub` brain runs the identical LangGraph — useful for testing the loop mechanics
 without any API calls.
 
+### Exporting to OpenRocket
+
+Every `make design` run saves its result to `data/last_design.json`. Export it as a
+real [OpenRocket](https://openrocket.info) `.ork` file — the industry-standard GUI
+tool the hobby/collegiate rocketry community actually uses:
+
+```bash
+make export-ork              # writes launchloop_design.ork (refuses a NO_GO result)
+make export-ork FORCE=1      # export anyway, e.g. to inspect a failed attempt
+```
+
+The motor's thrust curve is embedded exactly as simulated (sampled straight from the
+real RocketPy motor object, not approximated against an unrelated real motor), and
+the ballast/parachute/rail-angle match the agents' verified config. The airframe's
+internal mass distribution is a reasonable material+geometry approximation — our own
+simulation never modeled it at that level of detail either; see the docstring in
+[`export_ork.py`](src/agents/export_ork.py) for the full honesty note.
+
 ---
 
 ## Repo layout
@@ -213,7 +231,8 @@ src/
 ├── analysis/    features.py, apogee_model.py, anomaly_model.py
 ├── agents/      oracle.py (evaluate→metrics), mission.py, constraints.py,
 │                brain.py + {openai,claude}_brain.py (swappable) + agent_prompts.py,
-│                prescreen.py (ML pre-screen), designer.py (the LangGraph loop)
+│                prescreen.py (ML pre-screen), designer.py (the LangGraph loop),
+│                export_ork.py (verified design -> real OpenRocket .ork file)
 └── demo/        Streamlit UI (app.py), event streaming (events.py), replay recorder (record.py)
 tests/       pytest suite — oracle physics, constraints, mission, brain, features (27 tests, ~7s)
 data/        raw/ per-flight Parquet · warehouse.duckdb · labels.parquet

@@ -95,6 +95,28 @@ BASE_AXIAL_INERTIA = 0.034
 # the stability margin) — the core performance-vs-safety tradeoff.
 BALLAST_POSITION = 1.0
 NOMINAL_MAIN_CD_S = 10.0  # nominal main-parachute drag area (cd * S)
+DROGUE_CD_S = 1.0
+
+# Named airframe geometry (was inline literals in build_rocket) -- the .ork
+# exporter needs these too, so they're named once here to avoid the two
+# places silently drifting apart.
+NOSE_LENGTH = 0.55829
+NOSE_KIND = "von karman"
+NOSE_POSITION = 1.278
+
+FIN_COUNT = 4
+FIN_ROOT_CHORD = 0.120
+FIN_TIP_CHORD = 0.060
+FIN_SPAN = 0.110
+FIN_POSITION = -1.04956
+FIN_CANT_ANGLE = 0.5
+
+TAIL_TOP_RADIUS = 0.0635
+TAIL_BOTTOM_RADIUS = 0.0435
+TAIL_LENGTH = 0.060
+TAIL_POSITION = -1.194656
+
+RADIUS = 127 / 2000  # body tube radius (m)
 
 
 def build_rocket(
@@ -122,7 +144,7 @@ def build_rocket(
     )
 
     rocket = Rocket(
-        radius=127 / 2000,
+        radius=RADIUS,
         mass=total_mass,
         inertia=(lateral_inertia, lateral_inertia, BASE_AXIAL_INERTIA),
         power_off_drag=0.5,
@@ -131,19 +153,20 @@ def build_rocket(
         coordinate_system_orientation="tail_to_nose",
     )
     rocket.add_motor(motor, position=MOTOR_POSITION)
-    rocket.add_nose(length=0.55829, kind="von karman", position=1.278)
+    rocket.add_nose(length=NOSE_LENGTH, kind=NOSE_KIND, position=NOSE_POSITION)
     rocket.add_trapezoidal_fins(
-        n=4,
-        root_chord=0.120,
-        tip_chord=0.060,
-        span=0.110,
-        position=-1.04956,
-        cant_angle=0.5,
+        n=FIN_COUNT,
+        root_chord=FIN_ROOT_CHORD,
+        tip_chord=FIN_TIP_CHORD,
+        span=FIN_SPAN,
+        position=FIN_POSITION,
+        cant_angle=FIN_CANT_ANGLE,
     )
     rocket.add_tail(
-        top_radius=0.0635, bottom_radius=0.0435, length=0.060, position=-1.194656
+        top_radius=TAIL_TOP_RADIUS, bottom_radius=TAIL_BOTTOM_RADIUS,
+        length=TAIL_LENGTH, position=TAIL_POSITION,
     )
-    rocket.add_parachute(name="drogue", cd_s=1.0, trigger="apogee")
+    rocket.add_parachute(name="drogue", cd_s=DROGUE_CD_S, trigger="apogee")
     rocket.add_parachute(name="main", cd_s=main_cd_s, trigger=800)
     return rocket
 
